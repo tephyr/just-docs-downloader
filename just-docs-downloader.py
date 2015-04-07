@@ -31,10 +31,15 @@ class JustDocsDownloader(object):
         # Build URL.
         url_all_docs = self.__get_all_docs_URL()
         print(url_all_docs)
+        response = None
 
         # Retrieve unfiltered _all_docs.
         try:
-            response = requests.get(url_all_docs)
+            if (self.__use_auth):
+                response = requests.get(url_all_docs, auth=(self.__username, self.__password))
+            else:
+                response = requests.get(url_all_docs)
+
             print(response.status_code)
             with open(self.__output, mode="w") as f:
                 f.write(response.text)
