@@ -5,6 +5,7 @@
 
 import argparse
 import json
+import os.path
 import urlparse
 
 # 3rd-party
@@ -18,7 +19,7 @@ class JustDocsDownloader(object):
     def __init__(self, cli_args):
         self.__server_url = cli_args.serverurl
         self.__db_name = cli_args.dbname
-        self.__output = cli_args.output
+        self.__output = os.path.expanduser(cli_args.output)
         self.__username = cli_args.username
         self.__password = cli_args.password
         self.__use_auth = True if self.__username else False
