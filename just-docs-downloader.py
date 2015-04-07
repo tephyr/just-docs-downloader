@@ -6,7 +6,7 @@
 import argparse
 import json
 import os.path
-from pprint import pprint, pformat
+from   pprint import pformat
 import urlparse
 
 # 3rd-party
@@ -24,15 +24,16 @@ class JustDocsDownloader(object):
         self.__username = cli_args.username
         self.__password = cli_args.password
         self.__use_auth = True if self.__username else False
+        self.__verbose = cli_args.verbose
         
     
     def run(self):
-        print(self.__server_url, self.__db_name, self.__output)
-        print(self.__username, self.__use_auth)
-
+        """Run download process."""
         # Build URL.
         url_all_docs_simple = self.__get_all_docs_URL()
-        print(url_all_docs_simple)
+        if self.__verbose:
+            print("Getting all doc keys from {0}".format(url_all_docs_simple))
+
         response = None
 
         # Retrieve unfiltered _all_docs.
@@ -47,17 +48,21 @@ class JustDocsDownloader(object):
 
         # Filter out design docs.
         doc_keys = self.__get_filtered_keys(response.json())
-        pprint(doc_keys)
 
         # Retrieve filtered _all_docs.
         try:
             url_all_docs_full = self.__get_all_docs_URL(include_docs=True)
+            if self.__verbose:
+                print("Getting filtered docs from {0}".format(url_all_docs_full))
+            
             response = requests.post(url_all_docs_full,
                                      auth=(self.__username, self.__password) if self.__use_auth else None,
                                      data=json.dumps(doc_keys))
 
+            if self.__verbose and response.status_code != 200:
+                print("Problem with this status code: {0}".format(response.status_code))
 
-            print(url_all_docs_full, response.status_code)
+            # Write out as formatted JSON to output file.
             with open(self.__output, mode="w") as f:
                 f.write(pformat(response.json()))
 
@@ -66,8 +71,6 @@ class JustDocsDownloader(object):
             print("Error occured while retrieving FILTERED _all_docs.")
             print(exc)
             return
-        
-        # Save to output.
         
     def __get_all_docs_URL(self, include_docs=False):
         parsed_url = urlparse.urlsplit(self.__server_url)
@@ -79,9 +82,15 @@ class JustDocsDownloader(object):
     
     def __get_filtered_keys(self, results):
         """Get filtered keys from _all_docs result."""
-        print("Total rows: {0}".format(results.get("total_rows", "?")))
         # Find all documents that do NOT start with "_design/".
         keys = [doc["key"] for doc in results.get("rows", []) if not doc["key"].startswith("_design/")]
+
+        if self.__verbose:
+            print("Total rows (original): {0}; filtered rows: {1}".format(
+                results.get("total_rows", "?"),
+                len(keys)
+            ))
+
         return {"keys": keys}
 
 def run():
@@ -94,6 +103,7 @@ def run():
     parser.add_argument("--password")
     parser.add_argument("--output",
                         help="Full path to output file.")
+    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose")
     args = parser.parse_args()
     
     jdd = JustDocsDownloader(args)
