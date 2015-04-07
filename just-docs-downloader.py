@@ -37,13 +37,8 @@ class JustDocsDownloader(object):
 
         # Retrieve unfiltered _all_docs.
         try:
-            if (self.__use_auth):
-                response = requests.get(url_all_docs_simple, auth=(self.__username, self.__password))
-            else:
-                response = requests.get(url_all_docs_simple)
-
-            print(response.status_code)
-
+            response = requests.get(url_all_docs_simple,
+                                    auth=(self.__username, self.__password) if self.__use_auth else None)
         except Exception as exc:
             # Fail out for any error
             print("Error occured while retrieving UNFILTERED _all_docs.")
@@ -57,13 +52,10 @@ class JustDocsDownloader(object):
         # Retrieve filtered _all_docs.
         try:
             url_all_docs_full = self.__get_all_docs_URL(include_docs=True)
-            if (self.__use_auth):
-                response = requests.post(url_all_docs_full,
-                                         auth=(self.__username, self.__password),
-                                         data=json.dumps(doc_keys))
-            else:
-                response = requests.post(url_all_docs_full,
-                                         data=json.dumps(doc_keys))
+            response = requests.post(url_all_docs_full,
+                                     auth=(self.__username, self.__password) if self.__use_auth else None,
+                                     data=json.dumps(doc_keys))
+
 
             print(url_all_docs_full, response.status_code)
             with open(self.__output, mode="w") as f:
