@@ -6,6 +6,7 @@
 import argparse
 import json
 import os.path
+from pprint import pprint, pformat
 import urlparse
 
 # 3rd-party
@@ -42,8 +43,6 @@ class JustDocsDownloader(object):
                 response = requests.get(url_all_docs)
 
             print(response.status_code)
-            with open(self.__output, mode="w") as f:
-                f.write(response.text)
 
         except Exception as exc:
             # Fail out for any error
@@ -52,6 +51,11 @@ class JustDocsDownloader(object):
             return
 
         # Filter out design docs.
+        doc_keys = self.__get_filtered_keys(response.json())
+        pprint(doc_keys)
+        with open(self.__output, mode="w") as f:
+            f.write(pformat(doc_keys))
+
         # Retrieve filtered _all_docs.
         # Save to output.
         
@@ -62,6 +66,13 @@ class JustDocsDownloader(object):
                         "", "")
         return urlparse.urlunsplit(complete_url)
     
+    def __get_filtered_keys(self, results):
+        """Get filtered keys from _all_docs result."""
+        print("Total rows: {0}".format(results.get("total_rows", "?")))
+        # Find all documents that do NOT start with "_design/".
+        keys = [doc["key"] for doc in results.get("rows", []) if not doc["key"].startswith("_design/")]
+        return {"keys": keys}
+
 def run():
     parser = argparse.ArgumentParser(description="Download docs from CouchDB.")
     parser.add_argument("--serverurl", required=True,
