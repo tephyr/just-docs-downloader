@@ -21,6 +21,7 @@ class JustDocsDownloader(object):
         self.__server_url = cli_args.serverurl
         self.__db_name = cli_args.dbname
         self.__output = os.path.expanduser(cli_args.output)
+        self.__format_as_json = cli_args.json
         self.__username = cli_args.username
         self.__password = cli_args.password
         self.__use_auth = True if self.__username else False
@@ -64,7 +65,11 @@ class JustDocsDownloader(object):
 
             # Write out as formatted JSON to output file.
             with open(self.__output, mode="w") as f:
-                f.write(pformat(response.json()))
+                if self.__format_as_json:
+                    f.write(pformat(response.json()))
+                else:
+                    #print(response.encoding)
+                    f.write(response.text.encode("utf8"))
 
         except Exception as exc:
             # Fail out for any error
@@ -103,6 +108,8 @@ def run():
     parser.add_argument("--password")
     parser.add_argument("--output",
                         help="Full path to output file.")
+    parser.add_argument("--json", action="store_true",
+                        help="Write as formatted JSON.")
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose")
     args = parser.parse_args()
     
