@@ -31,40 +31,59 @@ class JustDocsDownloader(object):
         print(self.__username, self.__use_auth)
 
         # Build URL.
-        url_all_docs = self.__get_all_docs_URL()
-        print(url_all_docs)
+        url_all_docs_simple = self.__get_all_docs_URL()
+        print(url_all_docs_simple)
         response = None
 
         # Retrieve unfiltered _all_docs.
         try:
             if (self.__use_auth):
-                response = requests.get(url_all_docs, auth=(self.__username, self.__password))
+                response = requests.get(url_all_docs_simple, auth=(self.__username, self.__password))
             else:
-                response = requests.get(url_all_docs)
+                response = requests.get(url_all_docs_simple)
 
             print(response.status_code)
 
         except Exception as exc:
             # Fail out for any error
-            print("Error occured while retrieving unfiltered _all_docs.")
+            print("Error occured while retrieving UNFILTERED _all_docs.")
             print(exc)
             return
 
         # Filter out design docs.
         doc_keys = self.__get_filtered_keys(response.json())
         pprint(doc_keys)
-        with open(self.__output, mode="w") as f:
-            f.write(pformat(doc_keys))
 
         # Retrieve filtered _all_docs.
+        try:
+            url_all_docs_full = self.__get_all_docs_URL(include_docs=True)
+            if (self.__use_auth):
+                response = requests.post(url_all_docs_full,
+                                         auth=(self.__username, self.__password),
+                                         data=json.dumps(doc_keys))
+            else:
+                response = requests.post(url_all_docs_full,
+                                         data=json.dumps(doc_keys))
+
+            print(url_all_docs_full, response.status_code)
+            with open(self.__output, mode="w") as f:
+                f.write(pformat(response.json()))
+
+        except Exception as exc:
+            # Fail out for any error
+            print("Error occured while retrieving FILTERED _all_docs.")
+            print(exc)
+            return
+        
         # Save to output.
         
-    def __get_all_docs_URL(self):
+    def __get_all_docs_URL(self, include_docs=False):
         parsed_url = urlparse.urlsplit(self.__server_url)
         complete_url = (parsed_url[0], parsed_url[1],
                         "{0}/{1}".format(self.__db_name, "_all_docs"),
-                        "", "")
-        return urlparse.urlunsplit(complete_url)
+                        "", "include_docs=true" if include_docs else "",
+                        "")
+        return urlparse.urlunparse(complete_url)
     
     def __get_filtered_keys(self, results):
         """Get filtered keys from _all_docs result."""
