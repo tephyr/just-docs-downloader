@@ -11,17 +11,18 @@ class JustDocsDownloader(object):
 
     #----------------------------------------------------------------------
     def __init__(self, cli_args):
-        pass
+        self.__url = cli_args.url
+        self.__output = cli_args.output
         
     
     def run(self):
-        pass
+        print(self.__url, self.__output)
     
 def run():
     parser = argparse.ArgumentParser(description="Download docs from CouchDB.")
-    parser.add_argument("url", 
+    parser.add_argument("--url", 
                         help="Full URL to CouchDB database (including name/password if using basic authentication).")
-    parser.add_argument("output",
+    parser.add_argument("--output",
                         help="Full path to output file.")
     args = parser.parse_args()
     
