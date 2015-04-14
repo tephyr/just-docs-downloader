@@ -25,7 +25,9 @@ Usage
     just-docs-downloader.py --serverurl http://127.0.0.1:5984 --dbname=any-database \
     --output=/full/path/to/output.file --username=user --password=p@$$w0rd
 
-
+License
++++++++
+`The MIT License (MIT) <http://opensource.org/licenses/MIT>`__.
 
 .. _pip: https://pip.pypa.io/
 .. _python: http://www.python.org/
