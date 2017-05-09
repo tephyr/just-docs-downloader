@@ -58,6 +58,7 @@ class JustDocsDownloader(object):
             
             response = requests.post(url_all_docs_full,
                                      auth=(self.__username, self.__password) if self.__use_auth else None,
+                                     headers={"content-type": "application/json"},
                                      data=json.dumps(doc_keys))
 
             if self.__verbose and response.status_code != 200:
